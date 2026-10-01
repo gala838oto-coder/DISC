@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Опросник DISC</title>
+<style>
+  :root {
+    --bg: #f5f3ee;
+    --card: #ffffff;
+    --text: #2a2a2a;
+    --muted: #6b6b66;
+    --line: #dcd8cf;
+    --accent: #4f5d6b;
+    --accent-soft: #e7eaee;
+    --most: #4f6b58;
+    --most-soft: #e4ece6;
+    --least: #7a5a52;
+    --least-soft: #f0e6e3;
+    --D: #b0554c;
+    --I: #c9a43a;
+    --S: #5b8c5f;
+    --C: #4a6c9b;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 19px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 20px 16px 48px; }
+  h1 { font-size: 28px; line-height: 1.25; margin: 8px 0 16px; font-weight: 600; }
+  h2 { font-size: 23px; line-height: 1.3; margin: 0 0 12px; font-weight: 600; }
+  h3 { font-size: 20px; margin: 20px 0 8px; font-weight: 600; }
+  p { margin: 0 0 12px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px 18px;
+    margin-bottom: 16px;
+  }
+  .muted { color: var(--muted); }
+  .small { font-size: 16px; }
+  ul { margin: 0 0 12px; padding-left: 22px; }
+  li { margin-bottom: 4px; }
+
+  label.field { display: block; font-weight: 600; margin-bottom: 8px; }
+  input[type=text] {
+    width: 100%;
+    font-size: 20px;
+    padding: 14px 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--text);
+  }
+  input[type=text]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  button { font-family: inherit; }
+  .btn {
+    display: block;
+    width: 100%;
+    font-size: 20px;
+    font-weight: 600;
+    padding: 16px 18px;
+    min-height: 58px;
+    border-radius: 12px;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+  }
+  .btn:disabled { opacity: .4; cursor: default; }
+  .btn.secondary { background: transparent; color: var(--accent); }
+  .row { display: flex; gap: 12px; margin-top: 16px; }
+  .row .btn { flex: 1; }
+
+  .progress-text { font-size: 17px; color: var(--muted); margin-bottom: 8px; }
+  .bar-track { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin-bottom: 20px; }
+  .bar-fill { height: 100%; background: var(--accent); transition: width .2s; }
+
+  .q-label { font-weight: 600; margin: 4px 0 10px; }
+  .q-label.most { color: var(--most); }
+  .q-label.least { color: var(--least); margin-top: 22px; }
+  .options { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  @media (min-width: 520px) { .options { grid-template-columns: 1fr 1fr; } }
+  .opt {
+    font-size: 19px;
+    text-align: left;
+    padding: 14px 16px;
+    min-height: 58px;
+    border-radius: 12px;
+    border: 2px solid var(--line);
+    background: #fff;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .opt.sel-most { border-color: var(--most); background: var(--most-soft); font-weight: 600; }
+  .opt.sel-least { border-color: var(--least); background: var(--least-soft); font-weight: 600; }
+  .opt:disabled { color: #b5b2aa; background: #f7f6f3; border-style: dashed; cursor: default; }
+  .hint { min-height: 26px; font-size: 16px; color: var(--muted); margin-top: 12px; }
+
+  /* Диаграмма */
+  .chart { display: flex; gap: 6px; margin-top: 8px; }
+  .axis { position: relative; width: 22px; height: 260px; font-size: 14px; color: var(--muted); }
+  .axis span { position: absolute; right: 2px; transform: translateY(50%); }
+  .plot { position: relative; flex: 1; height: 260px; border-bottom: 2px solid var(--muted); }
+  .grid { position: absolute; left: 0; right: 0; border-top: 1px solid var(--line); }
+  .grid.mid { border-top: 2px dashed var(--muted); }
+  .mid-label { position: absolute; right: 0; font-size: 13px; color: var(--muted); transform: translateY(-120%); background: var(--card); padding: 0 4px; }
+  .bars { position: absolute; inset: 0; display: flex; justify-content: space-around; align-items: flex-end; padding: 0 4%; }
+  .bar { position: relative; width: 17%; border-radius: 6px 6px 0 0; transition: height .4s; }
+  .bar .val { position: absolute; top: -28px; left: 0; right: 0; text-align: center; font-weight: 600; font-size: 17px; }
+  .bar-names { display: flex; justify-content: space-around; padding: 6px 4% 0; margin-left: 28px; }
+  .bar-names div { width: 17%; text-align: center; font-weight: 700; font-size: 20px; }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+  .tab {
+    flex: 1;
+    font-size: 17px;
+    padding: 12px 6px;
+    min-height: 52px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .tab.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+
+  .levels { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 17px; }
+  .levels td { padding: 8px 4px; border-top: 1px solid var(--line); vertical-align: top; }
+  .dot { display: inline-block; width: 14px; height: 14px; border-radius: 3px; margin-right: 8px; vertical-align: -1px; }
+
+  .type-code { font-size: 34px; font-weight: 700; letter-spacing: 2px; margin: 4px 0 8px; }
+  .lead-box { border-left: 6px solid var(--accent); padding-left: 14px; }
+  .note { background: var(--accent-soft); border-radius: 10px; padding: 12px 14px; font-size: 17px; }
+  .note.warn { background: #f3ece0; }
+
+  .hidden { display: none !important; }
+
+  @media print {
+    body { background: #fff; font-size: 14px; }
+    .no-print { display: none !important; }
+    .card { border: none; padding: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Начало -->
+  <section id="screen-start" class="hidden">
+    <h1>Ваше поведение на работе</h1>
+    <div class="card">
+      <p>Опросник состоит из 28 групп слов. В каждой группе четыре слова.</p>
+      <p>В каждой группе выберите:</p>
+      <ul>
+        <li>одно слово, которое <b>больше всего</b> похоже на вас на работе;</li>
+        <li>одно слово, которое <b>меньше всего</b> похоже на вас на работе.</li>
+      </ul>
+      <p>Правильных и неправильных ответов нет. Не раздумывайте долго: обычно первое впечатление самое точное. На всё уйдёт около 10 минут.</p>
+      <p class="muted small">Ответы сохраняются только на этом устройстве и никуда не отправляются. Если закроете страницу, при следующем открытии сможете продолжить с того же места.</p>
+    </div>
+    <div class="card">
+      <label class="field" for="name">Ваше имя</label>
+      <input type="text" id="name" autocomplete="off" placeholder="Например: Анна">
+      <div class="row"><button class="btn" id="btn-start">Начать</button></div>
+    </div>
+  </section>
+
+  <!-- Вопросы -->
+  <section id="screen-quiz" class="hidden">
+    <div class="progress-text" id="progress-text"></div>
+    <div class="bar-track"><div class="bar-fill" id="progress-fill"></div></div>
+    <div class="card">
+      <div class="q-label most">Больше всего похоже на меня:</div>
+      <div class="options" id="opts-most"></div>
+      <div class="q-label least">Меньше всего похоже на меня:</div>
+      <div class="options" id="opts-least"></div>
+      <div class="hint" id="hint"></div>
+    </div>
+    <div class="row">
+      <button class="btn secondary" id="btn-back">Назад</button>
+      <button class="btn" id="btn-next">Далее</button>
+    </div>
+  </section>
+
+  <!-- Результат -->
+  <section id="screen-result" class="hidden">
+    <h1 id="res-title">Ваш результат</h1>
+
+    <div class="card">
+      <div class="tabs no-print" role="tablist">
+        <button class="tab active" data-g="3">Естественный</button>
+        <button class="tab" data-g="1">График 1</button>
+        <button class="tab" data-g="2">График 2</button>
+      </div>
+      <h2 id="chart-title"></h2>
+      <p class="small muted" id="chart-desc"></p>
+      <div class="chart">
+        <div class="axis" id="axis"></div>
+        <div class="plot" id="plot"></div>
+      </div>
+      <div class="bar-names">
+        <div style="color:var(--D)">D</div>
+        <div style="color:var(--I)">I</div>
+        <div style="color:var(--S)">S</div>
+        <div style="color:var(--C)">C</div>
+      </div>
+      <table class="levels" id="levels"></table>
+    </div>
+
+    <div class="card" id="summary"></div>
+    <div class="card" id="lie"></div>
+
+    <div class="card">
+      <h3 style="margin-top:0">Как читать график</h3>
+      <p class="small">Высота столбика означает номер сегмента от 1 до 7. Сегмент 4 (пунктирная линия) — средний уровень. Психотип считается выраженным, если его столбик доходит до сегмента 5 и выше. Чем выше столбик, тем ярче проявляются черты этого типа.</p>
+      <p class="small">В каждом человеке есть все четыре типа, просто в разной степени. Ни один тип не лучше и не хуже другого.</p>
+    </div>
+
+    <div class="row no-print">
+      <button class="btn secondary" id="btn-review">Изменить ответы</button>
+      <button class="btn secondary" id="btn-restart">Пройти заново</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // Опросник: [слово, значок в колонке «Наиболее», значок в колонке «Наименее»]
+  // D, I, S, C — психотипы; N — шкала лжи (в графики не идёт).
+  var GROUPS = [
+    [["Полный энтузиазма","I","I"],["Бесстрашный","D","D"],["Дипломатичный","C","C"],["Довольный","S","S"]],
+    [["Осмотрительный","C","C"],["Полный решимости","D","D"],["Убедительный","I","I"],["Добродушный","S","N"]],
+    [["Дружелюбный","I","N"],["Аккуратный","C","C"],["Высказывающийся прямо","D","D"],["Спокойный","N","S"]],
+    [["Разговорчивый","I","I"],["Владеющий собой","C","C"],["Придерживающийся правил","S","S"],["Решительный","D","D"]],
+    [["Рискующий","D","D"],["Проницательный","C","C"],["Общительный","I","I"],["Умеренных взглядов","S","S"]],
+    [["Мягкий","S","S"],["Способный убедить","I","N"],["Тревожный","N","C"],["Оригинальный","N","D"]],
+    [["Экспрессивный","I","I"],["Добросовестный","C","C"],["Властный","D","D"],["Отзывчивый","N","S"]],
+    [["Уравновешенный","I","I"],["Наблюдательный","C","N"],["Скромный","S","S"],["Нетерпеливый","D","D"]],
+    [["Тактичный","C","C"],["Приятный","S","S"],["Притягивающий","I","I"],["Настойчивый","D","D"]],
+    [["Отважный","D","D"],["Вдохновенный","I","I"],["Покорный","S","S"],["Застенчивый","N","C"]],
+    [["Сдержанный","C","C"],["Любезный","S","S"],["Волевой","D","D"],["Неунывающий","I","I"]],
+    [["Стимулирующий","I","I"],["Добрый","S","S"],["Восприимчивый","C","C"],["Независимый","D","D"]],
+    [["Конкурирующий","D","D"],["Заботливый","S","S"],["Радостный","I","I"],["Закрытый","C","C"]],
+    [["Суетливый","C","C"],["Послушный","S","S"],["Твердый","D","D"],["Игривый","I","I"]],
+    [["Привлекательный","I","I"],["Склонный к самоанализу","C","N"],["Упрямый","D","D"],["Предсказуемый","S","S"]],
+    [["Логичный","C","C"],["Смелый","D","D"],["Верный","S","S"],["Очаровательный","I","I"]],
+    [["Коммуникабельный","I","I"],["Терпеливый","S","S"],["Полагающийся на себя","D","D"],["Тактичный","C","C"]],
+    [["Старательный","S","S"],["Энтузиаст","D","N"],["Основательный","C","C"],["Жизнерадостный","I","I"]],
+    [["Агрессивный","D","D"],["Экстраверт","I","I"],["Благожелательный","S","S"],["Осторожный","N","C"]],
+    [["Уверенный","I","I"],["Сочувствующий","S","S"],["Объективный","N","C"],["Напористый","D","D"]],
+    [["Дисциплинированный","C","C"],["Великодушный","S","S"],["Шустрый","I","I"],["Упорный","D","D"]],
+    [["Импульсивный","I","N"],["Интраверт","C","C"],["Сильный","D","D"],["Непринужденный","S","S"]],
+    [["Компанейский","I","I"],["Утонченный","C","C"],["Энергичный","D","D"],["Деликатный","S","S"]],
+    [["Обаятельный","I","I"],["Довольный","S","S"],["Требовательный","D","D"],["Уступчивый","C","C"]],
+    [["Аргументирующий","D","D"],["Систематичный","C","C"],["Сотрудничающий","S","S"],["Беспечный","I","I"]],
+    [["Веселый","I","I"],["Точный","C","C"],["Прямой","D","D"],["Уравновешенный","S","S"]],
+    [["Беспокойный","D","D"],["Приветливый","S","S"],["Трогательный","I","I"],["Внимательный","C","C"]],
+    [["Почтительный","C","C"],["Инициативный","D","D"],["Оптимистичный","I","I"],["Готовый помочь","S","S"]]
+  ];
+
+  // Ключ «Ваш профиль DISC»: [значение, строка таблицы]. Каждые 4 строки — один сегмент,
+  // верхняя строка таблицы = вершина сегмента 7. Между указанными значениями — по пропорции.
+  var SCALES = {
+    1: { top: 4, D: [[27,4],[12,6],[11,7],[10,8],[9,9],[8,10],[7,12],[6,13],[5,16],[4,18],[3,20],[2,23],[1,26],[0,29]],
+                 I: [[28,4],[12,6],[11,7],[10,8],[9,10],[8,12],[7,16],[6,17],[5,20],[4,23],[3,26],[2,28],[1,30],[0,31]],
+                 S: [[26,4],[14,6],[13,7],[12,9],[11,11],[10,13],[9,15],[8,17],[7,19],[6,21],[5,23],[4,25],[3,28],[2,29],[1,30],[0,31]],
+                 C: [[24,4],[12,5],[11,6],[10,8],[9,9],[8,11],[7,13],[6,16],[5,19],[4,23],[3,25],[2,28],[1,30],[0,31]] },
+    2: { top: 36, D: [[0,36],[1,37],[2,38],[3,39],[4,39],[5,40],[6,42],[7,43],[8,44],[9,46],[10,50],[11,52],[12,53],[13,54],[14,57],[15,58],[16,60],[17,61],[27,63]],
+                  I: [[0,36],[1,37],[2,39],[3,41],[4,44],[5,48],[6,52],[7,54],[8,57],[9,60],[10,61],[26,63]],
+                  S: [[0,36],[1,38],[2,42],[3,46],[4,49],[5,52],[6,55],[7,57],[8,58],[9,60],[10,62],[27,63]],
+                  C: [[0,36],[1,37],[2,38],[3,39],[4,40],[5,42],[6,45],[7,48],[8,51],[9,53],[10,56],[11,59],[12,60],[13,61],[26,63]] },
+    3: { top: 36, D: [[27,36],[9,38],[6,39],[5,40],[3,41],[2,42],[1,43],[0,43],[-1,44],[-2,45],[-3,46],[-4,47],[-5,48],[-6,49],[-7,50],[-8,52],[-9,53],[-10,54],[-11,55],[-12,56],[-13,57],[-14,59],[-15,60],[-16,61],[-27,63]],
+                  I: [[28,36],[9,38],[8,39],[7,41],[6,43],[5,44],[4,45],[3,47],[2,49],[1,50],[0,52],[-1,53],[-2,55],[-3,56],[-4,57],[-5,58],[-6,60],[-8,61],[-26,63]],
+                  S: [[26,36],[14,37],[12,39],[11,40],[10,41],[9,43],[8,44],[7,45],[6,47],[5,49],[4,50],[3,51],[2,52],[1,53],[0,55],[-1,56],[-2,57],[-3,58],[-4,59],[-5,60],[-7,61],[-27,63]],
+                  C: [[24,36],[18,37],[6,39],[5,41],[4,42],[3,43],[2,45],[1,46],[0,47],[-1,48],[-2,49],[-3,52],[-4,54],[-5,55],[-6,56],[-7,58],[-8,59],[-9,60],[-11,62],[-26,63]] }
+  };
+
+  var TYPES = ["D", "I", "S", "C"];
+  var NAMES = { D: "Доминирующий", I: "Влияющий", S: "Стабильный", C: "Добросовестный" };
+
+  var GRAPH_INFO = {
+    3: { title: "Естественный психотип",
+         desc: "График 3 = График 1 минус График 2. Это ваше естественное поведение — то, какой вы есть, когда не подстраиваетесь под обстоятельства. Именно по нему определяется психотип." },
+    1: { title: "График 1. Поведение, которое вы показываете",
+         desc: "Построен по ответам «больше всего похоже». Это поведение, которое вы стремитесь показать окружающим на работе. Часто это то, что, по вашему мнению, лучше всего подходит для рабочих ситуаций или поощряется в вашей компании." },
+    2: { title: "График 2. Поведение, которое вы сдерживаете",
+         desc: "Построен по ответам «меньше всего похоже». Показывает, что вы стремитесь в себе подавить — из-за собственных убеждений или воспитания. Чем ниже столбик, тем сильнее вы сдерживаете это поведение. То, что подавляется сильнее всего, создаёт внутреннее напряжение и может прорываться в стрессе." }
+  };
+
+  var LEVELS = {
+    7: "очень ярко выражен",
+    6: "сильно выражен",
+    5: "выражен",
+    4: "средний уровень",
+    3: "выражен слабо",
+    2: "выражен очень слабо",
+    1: "выражен очень слабо"
+  };
+
+  var DESCR = {
+    D: {
+      essence: "Ориентирован на результат и действие. Быстро принимает решения, любит вызовы и соревнование, открыто говорит, что думает.",
+      strong: "решительность, умение брать ответственность, держать ситуацию под контролем и доводить дело до результата",
+      motive: "трудные задачи, свобода действий, власть и влияние, быстрые видимые результаты",
+      grow: "терпение, внимание к людям, умение задавать вопросы и выслушивать другое мнение",
+      stress: "становится резким, давит и требует"
+    },
+    I: {
+      essence: "Ориентирован на людей и общение. Открыто выражает эмоции, работает с энтузиазмом, легко заводит знакомства и умеет вдохновлять.",
+      strong: "общительность, обаяние, умение убеждать и заряжать других своим настроем",
+      motive: "признание, внимание окружающих, общение, интересные и разнообразные задачи",
+      grow: "конкретность в целях и задачах, организованность, внимание к деталям",
+      stress: "становится многословным, эмоциональным, теряет фокус"
+    },
+    S: {
+      essence: "Ориентирован на стабильность и отношения. Надёжный командный игрок, хороший слушатель, работает методично и последовательно.",
+      strong: "терпение, верность, умение сопереживать и поддерживать спокойную атмосферу в коллективе",
+      motive: "стабильность и предсказуемость, гармония в коллективе, искренняя благодарность",
+      grow: "умение отстаивать свои интересы, гибкость к переменам, готовность говорить «нет»",
+      stress: "уступает, замыкается, избегает конфликта"
+    },
+    C: {
+      essence: "Ориентирован на качество и точность. Структурирован, внимателен к деталям, сначала анализирует, потом действует.",
+      strong: "аналитический ум, высокое качество работы, следование правилам и стандартам",
+      motive: "ясные правила и критерии, время на подготовку, возможность сделать всё правильно",
+      grow: "скорость решений, больше общения с людьми, принятие того, что другие работают иначе",
+      stress: "уходит в себя, становится придирчивым и излишне критичным"
+    }
+  };
+
+  // Сочетания из материалов тренинга (DISC_дополнение), в сокращении
+  var COMBOS = {
+    DI: "Стремится влиять на людей и лидировать за счёт харизмы и настойчивого убеждения. Умеет добиваться результата в переговорах, комфортно чувствует себя в конкурентной среде. В стрессе может давить на других. Больше всего опасается потерять контроль над ситуацией.",
+    SC: "Надёжен и усидчив в работе. Долго обдумывает решение, но затем на него можно положиться. Сочетает критический анализ с умением сотрудничать. Лучше всего чувствует себя в стабильной, предсказуемой обстановке. Не любит сюрпризов, в стрессе замыкается в себе.",
+    DC: "Стремится к совершенству во всём и умеет настойчиво этого добиваться. Хорошо видит слабые места в существующих системах и находит пути их улучшения, часто первым внедряет новое. Может быть чрезмерно критичен и требователен к другим.",
+    IS: "С таким человеком легко общаться: он внимателен, тёпел, гостеприимен и предан друзьям. Мир и гармония в коллективе — главный приоритет. Слабое место — излишняя доверчивость и стремление избегать конфликтов любой ценой.",
+    IC: "Стремится к успеху и готов разделить его с другими. Тянется ко всему новому, добивается высокого качества и заражает других энтузиазмом. В стрессе могут захлёстывать эмоции, появляется придирчивость.",
+    DS: "Предприимчив, упорен и настойчив в любых задачах, поэтому часто добивается успеха. При этом глубоко привязан к людям, с которыми работает. В стрессе становится раздражительным и берёт инициативу на себя."
+  };
+  function comboKey(a, b) {
+    var order = { D: 0, I: 1, S: 2, C: 3 };
+    return order[a] < order[b] ? a + b : b + a;
+  }
+
+  // ---------- Хранение (только в этом браузере) ----------
+  var KEY = "disc-test-v1";
+  var state = { name: "", step: 0, answers: [], finished: false };
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) {
+        var s = JSON.parse(raw);
+        if (s && Array.isArray(s.answers)) state = s;
+      }
+    } catch (e) {}
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  function ans(i) {
+    if (!state.answers[i]) state.answers[i] = { most: null, least: null };
+    return state.answers[i];
+  }
+
+  // ---------- Экраны ----------
+  var $ = function (id) { return document.getElementById(id); };
+  function show(id) {
+    ["screen-start", "screen-quiz", "screen-result"].forEach(function (s) {
+      $(s).classList.toggle("hidden", s !== id);
+    });
+    window.scrollTo(0, 0);
+  }
+
+  // ---------- Вопросы ----------
+  function renderQuestion() {
+    var i = state.step;
+    var g = GROUPS[i];
+    var a = ans(i);
+    $("progress-text").textContent = "Группа " + (i + 1) + " из " + GROUPS.length;
+    $("progress-fill").style.width = (i / GROUPS.length * 100) + "%";
+
+    ["most", "least"].forEach(function (kind) {
+      var box = $("opts-" + kind);
+      box.innerHTML = "";
+      var other = kind === "most" ? a.least : a.most;
+      g.forEach(function (w, idx) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "opt";
+        b.textContent = w[0];
+        if (a[kind] === idx) b.classList.add(kind === "most" ? "sel-most" : "sel-least");
+        if (other === idx) b.disabled = true;
+        b.setAttribute("aria-pressed", a[kind] === idx ? "true" : "false");
+        b.addEventListener("click", function () {
+          a[kind] = idx;
+          save();
+          renderQuestion();
+        });
+        box.appendChild(b);
+      });
+    });
+
+    var ready = a.most !== null && a.least !== null;
+    $("btn-next").disabled = !ready;
+    $("btn-next").textContent = i === GROUPS.length - 1 ? "Показать результат" : "Далее";
+    $("btn-back").textContent = i === 0 ? "К началу" : "Назад";
+    $("hint").textContent = ready ? "" :
+      (a.most === null && a.least === null ? "Выберите по одному слову в каждом блоке." :
+       a.most === null ? "Осталось выбрать слово, которое больше всего похоже на вас." :
+       "Осталось выбрать слово, которое меньше всего похоже на вас.");
+  }
+
+  // ---------- Подсчёт ----------
+  function compute() {
+    var g1 = { D: 0, I: 0, S: 0, C: 0 }, g2 = { D: 0, I: 0, S: 0, C: 0 }, g3 = {}, lie = 0;
+    GROUPS.forEach(function (g, i) {
+      var a = state.answers[i];
+      if (!a) return;
+      var m = g[a.most][1], l = g[a.least][2];
+      if (m === "N") lie++; else g1[m]++;
+      if (l === "N") lie++; else g2[l]++;
+    });
+    TYPES.forEach(function (t) { g3[t] = g1[t] - g2[t]; });
+    return { raw: { 1: g1, 2: g2, 3: g3 }, lie: lie };
+  }
+
+  // Положение значения на шкале ключа -> высота столбика (0..7) и номер сегмента (1..7)
+  function place(graph, type, value) {
+    var sc = SCALES[graph], pts = sc[type], row;
+    var asc = pts[0][0] < pts[pts.length - 1][0]; // в графике 2 значения идут по возрастанию
+    var first = pts[0], last = pts[pts.length - 1];
+    if (asc ? value <= first[0] : value >= first[0]) row = first[1];
+    else if (asc ? value >= last[0] : value <= last[0]) row = last[1];
+    else {
+      for (var k = 0; k < pts.length - 1; k++) {
+        var p = pts[k], q = pts[k + 1];
+        var inside = asc ? (value >= p[0] && value <= q[0]) : (value <= p[0] && value >= q[0]);
+        if (inside) {
+          row = p[0] === q[0] ? p[1] : p[1] + (value - p[0]) / (q[0] - p[0]) * (q[1] - p[1]);
+          break;
+        }
+      }
+    }
+    var height = (sc.top + 28 - row) / 4;
+    return { height: height, seg: Math.max(1, Math.min(7, Math.ceil(height - 1e-9))), value: value };
+  }
+
+  function profile(res, graph) {
+    var out = {};
+    TYPES.forEach(function (t) { out[t] = place(graph, t, res.raw[graph][t]); });
+    return out;
+  }
+
+  // ---------- Результат ----------
+  var currentGraph = 3;
+  var result = null;
+
+  function renderChart(graph) {
+    var p = profile(result, graph);
+    $("chart-title").textContent = GRAPH_INFO[graph].title;
+    $("chart-desc").textContent = GRAPH_INFO[graph].desc;
+
+    var axis = $("axis"), plot = $("plot");
+    axis.innerHTML = ""; plot.innerHTML = "";
+    for (var s = 1; s <= 7; s++) {
+      var lab = document.createElement("span");
+      lab.textContent = s;
+      lab.style.bottom = ((s - 0.5) / 7 * 100) + "%";
+      axis.appendChild(lab);
+    }
+    for (var s2 = 1; s2 <= 7; s2++) {
+      var gl = document.createElement("div");
+      gl.className = "grid" + (s2 === 4 ? " mid" : "");
+      gl.style.bottom = (s2 / 7 * 100) + "%";
+      plot.appendChild(gl);
+    }
+    var ml = document.createElement("div");
+    ml.className = "mid-label";
+    ml.style.bottom = (4 / 7 * 100) + "%";
+    ml.textContent = "средний уровень";
+    plot.appendChild(ml);
+
+    var bars = document.createElement("div");
+    bars.className = "bars";
+    TYPES.forEach(function (t) {
+      var b = document.createElement("div");
+      b.className = "bar";
+      b.style.background = "var(--" + t + ")";
+      b.style.height = (Math.max(p[t].height, 0.15) / 7 * 100) + "%";
+      b.setAttribute("aria-label", t + ": сегмент " + p[t].seg);
+      var v = document.createElement("div");
+      v.className = "val";
+      v.textContent = p[t].seg;
+      b.appendChild(v);
+      bars.appendChild(b);
+    });
+    plot.appendChild(bars);
+
+    var rows = TYPES.map(function (t) {
+      var sign = graph === 3 && p[t].value > 0 ? "+" : "";
+      return "<tr><td><span class='dot' style='background:var(--" + t + ")'></span><b>" + t +
+        "</b> — " + NAMES[t] + "</td><td>сегмент " + p[t].seg + ", " + LEVELS[p[t].seg] +
+        "<br><span class='muted small'>" + (graph === 3 ? "баллы: " : "выборов: ") + sign + p[t].value + "</span></td></tr>";
+    });
+    $("levels").innerHTML = rows.join("");
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function renderSummary() {
+    var p = profile(result, 3);
+    var sorted = TYPES.slice().sort(function (a, b) { return p[b].height - p[a].height; });
+    var lead = sorted[0], second = sorted[1];
+    var expressed = sorted.filter(function (t) { return p[t].seg >= 5; });
+    var html = "";
+
+    if (expressed.length === 0) {
+      html += "<h2>Сбалансированный профиль</h2>";
+      html += "<p>Ни один психотип не поднимается выше среднего уровня. Это значит, что у вас нет одного ярко выраженного стиля: вы гибко подстраиваете поведение под ситуацию.</p>";
+      html += "<p>Ближе всего к вам тип <b>" + lead + " — " + NAMES[lead] + "</b> (сегмент " + p[lead].seg + ").</p>";
+    } else {
+      html += "<p class='muted small' style='margin:0'>Ваш психотип</p>";
+      html += "<div class='type-code'>" + expressed.join("") + "</div>";
+      html += "<p><b>Ведущий психотип — " + lead + " (" + NAMES[lead] + ")</b>, " + LEVELS[p[lead].seg] +
+        " (сегмент " + p[lead].seg + " из 7).</p>";
+      if (expressed.length > 1) {
+        html += "<p>Также выражен" + (expressed.length > 2 ? "ы" : "") + ": " + expressed.slice(1).map(function (t) {
+          return t + " (" + NAMES[t] + ", сегмент " + p[t].seg + ")";
+        }).join(", ") + ".</p>";
+      }
+    }
+
+    var d = DESCR[lead];
+    html += "<div class='lead-box'>";
+    html += "<h3>" + lead + " — " + NAMES[lead] + "</h3>";
+    html += "<p>" + d.essence + "</p>";
+    html += "<p><b>Сильные стороны:</b> " + d.strong + ".</p>";
+    html += "<p><b>Что мотивирует:</b> " + d.motive + ".</p>";
+    html += "<p><b>Что стоит развивать:</b> " + d.grow + ".</p>";
+    html += "<p><b>В стрессе:</b> " + d.stress + ".</p>";
+    html += "</div>";
+
+    // Сочетание: второй тип тоже выражен и почти на одном уровне с ведущим
+    if (p[second].seg >= 5 && p[lead].height - p[second].height <= 1) {
+      var key = comboKey(lead, second);
+      if (COMBOS[key]) {
+        html += "<h3>Сочетание " + lead + second + "</h3>";
+        html += "<p>Типы " + lead + " и " + second + " выражены почти одинаково ярко.</p>";
+        html += "<p>" + COMBOS[key] + "</p>";
+      }
+    }
+    $("summary").innerHTML = html;
+
+    var lie = result.lie, lieHtml = "<h3 style='margin-top:0'>Достоверность ответов</h3>";
+    if (lie <= 2) {
+      lieHtml += "<div class='note'>Ответов из шкалы лжи: " + lie + ". Ответы выглядят искренними, результату можно доверять.</div>";
+    } else if (lie <= 4) {
+      lieHtml += "<div class='note warn'>Ответов из шкалы лжи: " + lie + ". Возможно, часть ответов давалась так, как «правильно», а не так, как есть на самом деле. Результат стоит обсудить с тренером.</div>";
+    } else {
+      lieHtml += "<div class='note warn'>Ответов из шкалы лжи: " + lie + ". Это много: результат может быть недостоверным. Попробуйте пройти опросник ещё раз, отвечая быстрее и не думая о том, как ответ будет выглядеть со стороны.</div>";
+    }
+    $("lie").innerHTML = lieHtml;
+  }
+
+  function showResult() {
+    result = compute();
+    state.finished = true;
+    save();
+    $("res-title").innerHTML = state.name ? "Результат: " + esc(state.name) : "Ваш результат";
+    currentGraph = 3;
+    setTab(3);
+    renderSummary();
+    show("screen-result");
+  }
+
+  function setTab(g) {
+    currentGraph = g;
+    Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (t) {
+      t.classList.toggle("active", +t.getAttribute("data-g") === g);
+    });
+    renderChart(g);
+  }
+
+  // ---------- Кнопки ----------
+  $("btn-start").addEventListener("click", function () {
+    state.name = $("name").value.trim();
+    save();
+    show("screen-quiz");
+    renderQuestion();
+  });
+  $("name").addEventListener("keydown", function (e) { if (e.key === "Enter") $("btn-start").click(); });
+  $("btn-next").addEventListener("click", function () {
+    if (state.step < GROUPS.length - 1) {
+      state.step++;
+      save();
+      renderQuestion();
+      window.scrollTo(0, 0);
+    } else {
+      showResult();
+    }
+  });
+  $("btn-back").addEventListener("click", function () {
+    if (state.step > 0) {
+      state.step--;
+      save();
+      renderQuestion();
+      window.scrollTo(0, 0);
+    } else {
+      $("name").value = state.name || "";
+      show("screen-start");
+    }
+  });
+  Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (t) {
+    t.addEventListener("click", function () { setTab(+t.getAttribute("data-g")); });
+  });
+  $("btn-review").addEventListener("click", function () {
+    state.step = 0;
+    state.finished = false;
+    save();
+    show("screen-quiz");
+    renderQuestion();
+  });
+  $("btn-restart").addEventListener("click", function () {
+    if (!confirm("Удалить ваши ответы и пройти опросник заново?")) return;
+    state = { name: "", step: 0, answers: [], finished: false };
+    save();
+    $("name").value = "";
+    show("screen-start");
+  });
+
+  // ---------- Запуск ----------
+  load();
+  var complete = state.answers.length === GROUPS.length && state.answers.every(function (a) {
+    return a && a.most !== null && a.least !== null;
+  });
+  if (state.finished && complete) {
+    showResult();
+  } else if (state.answers.length > 0) {
+    show("screen-quiz");
+    renderQuestion();
+  } else {
+    $("name").value = state.name || "";
+    show("screen-start");
+  }
+})();
+</script>
+</body>
+</html>
